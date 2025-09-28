@@ -1,0 +1,286 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+
+:root {
+  --foreground-rgb: 31, 41, 55;
+  --background-start-rgb: 249, 250, 251;
+  --background-end-rgb: 243, 244, 246;
+  --mono-primary: 55, 65, 81;
+  --mono-secondary: 107, 114, 128;
+  --mono-accent: 156, 163, 175;
+  --mono-light: 229, 231, 235;
+  --mono-dark: 17, 24, 39;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 243, 244, 246;
+    --background-start-rgb: 17, 24, 39;
+    --background-end-rgb: 31, 41, 55;
+    --mono-primary: 156, 163, 175;
+    --mono-secondary: 107, 114, 128;
+    --mono-accent: 55, 65, 81;
+    --mono-light: 55, 65, 81;
+    --mono-dark: 17, 24, 39;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+    135deg,
+    rgb(var(--background-start-rgb)) 0%,
+    rgb(var(--background-end-rgb)) 100%
+  );
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Loading animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Quiz timer animation */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Modern Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+/* Modern Components - Monochromatic */
+.btn-primary {
+  @apply bg-gray-800 hover:bg-gray-900 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-out;
+}
+
+.btn-secondary {
+  @apply bg-white hover:bg-gray-50 text-gray-700 font-semibold py-3 px-6 rounded-xl border border-gray-300 shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 ease-out;
+}
+
+.btn-danger {
+  @apply bg-gray-700 hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-out;
+}
+
+.input-field {
+  @apply w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-300 bg-white text-gray-900 placeholder-gray-500;
+}
+
+/* Ensure input text is visible */
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="password"],
+textarea {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
+
+.card {
+  @apply bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl border border-gray-200 transition-all duration-300 hover:scale-105;
+}
+
+.card-header {
+  @apply px-6 py-5 border-b border-gray-100;
+}
+
+.card-body {
+  @apply px-6 py-5;
+}
+
+.card-footer {
+  @apply px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl;
+}
+
+/* Glass morphism effects */
+.glass {
+  @apply bg-white/10 backdrop-blur-md border border-white/20;
+}
+
+.glass-card {
+  @apply bg-white/80 backdrop-blur-lg border border-white/30 shadow-xl;
+}
+
+/* Interactive elements */
+.interactive {
+  @apply transform transition-all duration-300 hover:scale-105 hover:shadow-lg;
+}
+
+.hover-lift {
+  @apply transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl;
+}
+
+/* Loading states */
+.skeleton {
+  @apply animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200px_100%];
+  animation: shimmer 2s infinite;
+}
+
+/* Monochromatic gradients */
+.gradient-primary {
+  @apply bg-gradient-to-r from-gray-700 to-gray-800;
+}
+
+.gradient-secondary {
+  @apply bg-gradient-to-r from-gray-600 to-gray-700;
+}
+
+.gradient-success {
+  @apply bg-gradient-to-r from-gray-500 to-gray-600;
+}
+
+.gradient-warning {
+  @apply bg-gradient-to-r from-gray-400 to-gray-500;
+}
+
+.gradient-danger {
+  @apply bg-gradient-to-r from-gray-600 to-gray-700;
+}
+
+/* Text gradients - Monochromatic */
+.text-gradient {
+  @apply bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent;
+}
+
+/* Modern shadows */
+.shadow-soft {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-glow {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+/* Animation utilities */
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.6s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.4s ease-out;
+}
+
+/* Monochromatic Icons */
+.icon-mono {
+  filter: grayscale(100%) brightness(0.6);
+  transition: all 0.3s ease;
+}
+
+.icon-mono:hover {
+  filter: grayscale(0%) brightness(0.8);
+  transform: scale(1.1);
+}
+
+.icon-primary {
+  filter: grayscale(100%) brightness(0.7);
+}
+
+.icon-secondary {
+  filter: grayscale(100%) brightness(0.6);
+}
+
+.icon-success {
+  filter: grayscale(100%) brightness(0.5);
+}
+
+.icon-warning {
+  filter: grayscale(100%) brightness(0.4);
+}
+
+.icon-danger {
+  filter: grayscale(100%) brightness(0.6);
+}
+
+.icon-info {
+  filter: grayscale(100%) brightness(0.5);
+}
