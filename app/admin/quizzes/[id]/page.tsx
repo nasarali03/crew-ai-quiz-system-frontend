@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
   AcademicCapIcon, 
@@ -38,13 +38,25 @@ interface QuizResult {
   completed_at: string
 }
 
+interface QuizQuestion {
+  id: string
+  question_text: string
+  options: string[]
+  correct_answer: string
+  explanation: string
+  question_number: number
+}
+
 export default function QuizDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const quizId = params.id as string
   
   const [quiz, setQuiz] = useState<Quiz | null>(null)
   const [results, setResults] = useState<QuizResult[]>([])
+  const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [loading, setLoading] = useState(true)
+  const [questionsLoading, setQuestionsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'results' | 'questions'>('overview')
 
   useEffect(() => {
@@ -67,13 +79,18 @@ export default function QuizDetailPage() {
         return
       }
       
-      // Fetch quiz results
-      const resultsResponse = await fetch(`/api/admin/quiz/${quizId}/results`)
-      if (resultsResponse.ok) {
-        const resultsData = await resultsResponse.json()
-        setResults(resultsData)
-      } else {
-        console.error('Failed to fetch results')
+      // Fetch quiz results (optional - don't fail if no results exist)
+      try {
+        const resultsResponse = await fetch(`/api/admin/quiz/${quizId}/results`)
+        if (resultsResponse.ok) {
+          const resultsData = await resultsResponse.json()
+          setResults(resultsData)
+        } else {
+          console.log('No quiz results found yet (students haven\'t taken the quiz)')
+          setResults([])
+        }
+      } catch (error) {
+        console.log('Results endpoint not available or no results yet')
         setResults([])
       }
       
@@ -90,6 +107,124 @@ export default function QuizDetailPage() {
       case 'medium': return 'text-yellow-600 bg-yellow-100'
       case 'hard': return 'text-red-600 bg-red-100'
       default: return 'text-gray-600 bg-gray-100'
+    }
+  }
+
+  const handleEditQuiz = () => {
+    router.push(`/admin/quizzes/${quizId}/edit`)
+  }
+
+  const handleToggleQuizStatus = async () => {
+    if (!quiz) return
+    
+    try {
+      const response = await fetch(`/api/admin/quizzes/${quizId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          is_active: !quiz.is_active
+        })
+      })
+
+      if (response.ok) {
+        setQuiz(prev => prev ? { ...prev, is_active: !prev.is_active } : null)
+        console.log(`Quiz ${quiz.is_active ? 'deactivated' : 'activated'} successfully`)
+      } else {
+        console.error('Failed to toggle quiz status')
+      }
+    } catch (error) {
+      console.error('Error toggling quiz status:', error)
+    }
+  }
+
+  const handleSendInvitations = () => {
+    // Navigate to invitations page or open modal
+    router.push(`/admin/invitations?quizId=${quizId}`)
+  }
+
+  const handleExportResults = () => {
+    if (results.length === 0) {
+      console.log('No results to export')
+      return
+    }
+    
+    // Create CSV content
+    const csvContent = [
+      ['Rank', 'Student Name', 'Email', 'Score', 'Percentage', 'Completed At'],
+      ...results.map(result => [
+        result.rank,
+        result.student_name,
+        result.student_email,
+        `${result.total_score}/${result.total_questions}`,
+        `${result.percentage}%`,
+        new Date(result.completed_at).toLocaleString()
+      ])
+    ].map(row => row.join(',')).join('\n')
+
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `quiz-${quizId}-results.csv`
+    a.click()
+    window.URL.revokeObjectURL(url)
+  }
+
+  const fetchQuestions = async () => {
+    try {
+      setQuestionsLoading(true)
+      // Use full questions endpoint to get questions with answers for admin review
+      const response = await fetch(`/api/admin/quiz/${quizId}/questions`)
+      if (response.ok) {
+        const questionsData = await response.json()
+        setQuestions(questionsData)
+      } else {
+        console.error('Failed to fetch questions')
+        setQuestions([])
+      }
+    } catch (error) {
+      console.error('Error fetching questions:', error)
+      setQuestions([])
+    } finally {
+      setQuestionsLoading(false)
+    }
+  }
+
+  const handleRegenerateQuestions = async () => {
+    if (!quiz) return
+    
+    try {
+      const response = await fetch(`/api/admin/quiz/${quizId}/generate-questions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          topic: quiz.topic,
+          difficulty: quiz.difficulty,
+          total_questions: quiz.total_questions
+        })
+      })
+
+      if (response.ok) {
+        console.log('Questions regenerated successfully')
+        // Refresh questions after regeneration
+        await fetchQuestions()
+      } else {
+        console.error('Failed to regenerate questions')
+      }
+    } catch (error) {
+      console.error('Error regenerating questions:', error)
+    }
+  }
+
+  const handleTabChange = (tab: 'overview' | 'results' | 'questions') => {
+    setActiveTab(tab)
+    if (tab === 'questions' && questions.length === 0) {
+      fetchQuestions()
     }
   }
 
@@ -131,11 +266,17 @@ export default function QuizDetailPage() {
           </div>
         </div>
         <div className="flex space-x-2">
-          <button className="btn-secondary flex items-center">
+          <button 
+            onClick={handleEditQuiz}
+            className="btn-secondary flex items-center"
+          >
             <PencilIcon className="h-4 w-4 mr-2" />
             Edit
           </button>
-          <button className="btn-primary flex items-center">
+          <button 
+            onClick={handleToggleQuizStatus}
+            className="btn-primary flex items-center"
+          >
             <PlayIcon className="h-4 w-4 mr-2" />
             {quiz.is_active ? 'Deactivate' : 'Activate'}
           </button>
@@ -177,7 +318,7 @@ export default function QuizDetailPage() {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => handleTabChange(tab.id as any)}
                 className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
                     ? 'border-primary-500 text-primary-600'
@@ -232,11 +373,17 @@ export default function QuizDetailPage() {
 
               {/* Quick Actions */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button className="btn-primary flex items-center justify-center">
+                <button 
+                  onClick={handleSendInvitations}
+                  className="btn-primary flex items-center justify-center"
+                >
                   <EnvelopeIcon className="h-5 w-5 mr-2" />
                   Send Invitations
                 </button>
-                <button className="btn-secondary flex items-center justify-center">
+                <button 
+                  onClick={handleExportResults}
+                  className="btn-secondary flex items-center justify-center"
+                >
                   <ChartBarIcon className="h-5 w-5 mr-2" />
                   Export Results
                 </button>
@@ -248,7 +395,12 @@ export default function QuizDetailPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">Quiz Results</h3>
-                <button className="btn-secondary">Export CSV</button>
+                <button 
+                  onClick={handleExportResults}
+                  className="btn-secondary"
+                >
+                  Export CSV
+                </button>
               </div>
               
               <div className="overflow-x-auto">
@@ -319,14 +471,95 @@ export default function QuizDetailPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">Quiz Questions</h3>
-                <button className="btn-primary">Regenerate Questions</button>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={fetchQuestions}
+                    className="btn-secondary"
+                    disabled={questionsLoading}
+                  >
+                    {questionsLoading ? 'Loading...' : 'Refresh Questions'}
+                  </button>
+                  <button 
+                    onClick={handleRegenerateQuestions}
+                    className="btn-primary"
+                  >
+                    Regenerate Questions
+                  </button>
+                </div>
               </div>
               
-              <div className="text-center py-12">
-                <AcademicCapIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Questions will be generated</h3>
-                <p className="text-gray-600">AI will generate {quiz.total_questions} questions about {quiz.topic}.</p>
-              </div>
+              {questionsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                  <span className="ml-2 text-gray-600">Loading questions...</span>
+                </div>
+              ) : questions.length > 0 ? (
+                <div className="space-y-6">
+                  {questions.map((question, index) => (
+                    <div key={question.id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                      <div className="flex items-start justify-between mb-4">
+                        <h4 className="text-lg font-semibold text-gray-900">
+                          Question {question.question_number || index + 1}
+                        </h4>
+                        <span className="text-sm text-gray-500">
+                          ID: {question.id}
+                        </span>
+                      </div>
+                      
+                      <div className="mb-4">
+                        <p className="text-gray-800 text-base leading-relaxed">
+                          {question.question_text}
+                        </p>
+                      </div>
+                      
+                      <div className="mb-4">
+                        <h5 className="text-sm font-medium text-gray-700 mb-2">Options:</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {question.options.map((option, optionIndex) => (
+                            <div 
+                              key={optionIndex}
+                              className={`p-3 rounded-lg border ${
+                                option === question.correct_answer
+                                  ? 'border-green-500 bg-green-50 text-green-800'
+                                  : 'border-gray-200 bg-gray-50 text-gray-700'
+                              }`}
+                            >
+                              <span className="font-medium">
+                                {String.fromCharCode(65 + optionIndex)}. 
+                              </span>
+                              {option}
+                              {option === question.correct_answer && (
+                                <span className="ml-2 text-green-600 font-semibold">✓ Correct</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h5 className="text-sm font-medium text-blue-800 mb-1">Explanation:</h5>
+                        <p className="text-blue-700 text-sm">
+                          {question.explanation}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <AcademicCapIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No questions found</h3>
+                  <p className="text-gray-600 mb-4">
+                    This quiz doesn't have any questions yet. Click "Regenerate Questions" to create them.
+                  </p>
+                  <button 
+                    onClick={handleRegenerateQuestions}
+                    className="btn-primary"
+                  >
+                    Generate Questions Now
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
