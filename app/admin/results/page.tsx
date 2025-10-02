@@ -1,106 +1,69 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface QuizResult {
   id: string
-  studentName: string
-  studentEmail: string
-  quizTitle: string
-  score: number
-  totalQuestions: number
-  correctAnswers: number
-  timeSpent: string
-  completedAt: string
+  student_name: string
+  student_email: string
+  quiz_title: string
+  percentage: number
+  total_questions: number
+  total_score: number
+  completed_at: string
   rank: number
 }
 
 export default function ResultsPage() {
+  const [results, setResults] = useState<QuizResult[]>([])
+  const [loading, setLoading] = useState(true)
   const [selectedQuiz, setSelectedQuiz] = useState('all')
   const [sortBy, setSortBy] = useState<'score' | 'name' | 'date'>('score')
   const [searchTerm, setSearchTerm] = useState('')
 
-  // Dummy data
-  const results: QuizResult[] = [
-    {
-      id: '1',
-      studentName: 'John Doe',
-      studentEmail: 'john.doe@example.com',
-      quizTitle: 'Python Fundamentals',
-      score: 92,
-      totalQuestions: 15,
-      correctAnswers: 14,
-      timeSpent: '12:30',
-      completedAt: '2024-01-20T10:30:00Z',
-      rank: 1
-    },
-    {
-      id: '2',
-      studentName: 'Jane Smith',
-      studentEmail: 'jane.smith@example.com',
-      quizTitle: 'Python Fundamentals',
-      score: 88,
-      totalQuestions: 15,
-      correctAnswers: 13,
-      timeSpent: '15:45',
-      completedAt: '2024-01-20T11:15:00Z',
-      rank: 2
-    },
-    {
-      id: '3',
-      studentName: 'Mike Johnson',
-      studentEmail: 'mike.johnson@example.com',
-      quizTitle: 'Data Structures',
-      score: 85,
-      totalQuestions: 20,
-      correctAnswers: 17,
-      timeSpent: '18:20',
-      completedAt: '2024-01-19T14:20:00Z',
-      rank: 1
-    },
-    {
-      id: '4',
-      studentName: 'Sarah Wilson',
-      studentEmail: 'sarah.wilson@example.com',
-      quizTitle: 'Python Fundamentals',
-      score: 78,
-      totalQuestions: 15,
-      correctAnswers: 12,
-      timeSpent: '20:10',
-      completedAt: '2024-01-20T16:45:00Z',
-      rank: 3
-    },
-    {
-      id: '5',
-      studentName: 'David Brown',
-      studentEmail: 'david.brown@example.com',
-      quizTitle: 'Web Development',
-      score: 90,
-      totalQuestions: 18,
-      correctAnswers: 16,
-      timeSpent: '14:30',
-      completedAt: '2024-01-21T09:15:00Z',
-      rank: 1
-    }
-  ]
+  useEffect(() => {
+    fetchResults()
+  }, [])
 
-  const quizzes = ['all', 'Python Fundamentals', 'Data Structures', 'Web Development']
+  const fetchResults = async () => {
+    try {
+      setLoading(true)
+      console.log('🔍 Fetching quiz results...')
+      const response = await fetch('/api/admin/results')
+      if (response.ok) {
+        const data = await response.json()
+        console.log(`✅ Retrieved ${data.length} quiz results`)
+        setResults(data)
+      } else {
+        console.error('❌ Failed to fetch results:', response.status, response.statusText)
+        setResults([])
+      }
+    } catch (error) {
+      console.error('❌ Error fetching results:', error)
+      setResults([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Get unique quizzes from results
+  const quizzes = ['all', ...new Set(results.map(r => r.quiz_title))]
 
   const filteredResults = results
     .filter(result => {
-      const matchesQuiz = selectedQuiz === 'all' || result.quizTitle === selectedQuiz
-      const matchesSearch = result.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           result.studentEmail.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesQuiz = selectedQuiz === 'all' || result.quiz_title === selectedQuiz
+      const matchesSearch = result.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           result.student_email.toLowerCase().includes(searchTerm.toLowerCase())
       return matchesQuiz && matchesSearch
     })
     .sort((a, b) => {
       switch (sortBy) {
         case 'score':
-          return b.score - a.score
+          return b.percentage - a.percentage
         case 'name':
-          return a.studentName.localeCompare(b.studentName)
+          return a.student_name.localeCompare(b.student_name)
         case 'date':
-          return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
+          return new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime()
         default:
           return 0
       }
@@ -120,6 +83,20 @@ export default function ResultsPage() {
     return 'bg-red-100'
   }
 
+  // Calculate statistics
+  const totalSubmissions = results.length
+  const averageScore = totalSubmissions > 0 ? Math.round(results.reduce((acc, r) => acc + r.percentage, 0) / totalSubmissions) : 0
+  const highPerformers = results.filter(r => r.percentage >= 90).length
+  const needImprovement = results.filter(r => r.percentage < 70).length
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -132,25 +109,19 @@ export default function ResultsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Total Submissions</h3>
-          <p className="text-3xl font-bold text-blue-600">{results.length}</p>
+          <p className="text-3xl font-bold text-blue-600">{totalSubmissions}</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Average Score</h3>
-          <p className="text-3xl font-bold text-green-600">
-            {Math.round(results.reduce((acc, r) => acc + r.score, 0) / results.length)}%
-          </p>
+          <p className="text-3xl font-bold text-green-600">{averageScore}%</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">High Performers</h3>
-          <p className="text-3xl font-bold text-purple-600">
-            {results.filter(r => r.score >= 90).length}
-          </p>
+          <p className="text-3xl font-bold text-purple-600">{highPerformers}</p>
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Need Improvement</h3>
-          <p className="text-3xl font-bold text-orange-600">
-            {results.filter(r => r.score < 70).length}
-          </p>
+          <p className="text-3xl font-bold text-orange-600">{needImprovement}</p>
         </div>
       </div>
 
@@ -216,9 +187,6 @@ export default function ResultsPage() {
                   Correct
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Time
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Completed
                 </th>
               </tr>
@@ -238,7 +206,7 @@ export default function ResultsPage() {
                         <span className="text-orange-500 mr-2">🥉</span>
                       )}
                       <span className="text-sm font-medium text-gray-900">
-                        #{index + 1}
+                        #{result.rank || index + 1}
                       </span>
                     </div>
                   </td>
@@ -246,31 +214,28 @@ export default function ResultsPage() {
                     <div className="flex items-center">
                       <div className="h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
                         <span className="text-gray-600 font-medium">
-                          {result.studentName.split(' ').map(n => n[0]).join('')}
+                          {result.student_name.split(' ').map(n => n[0]).join('')}
                         </span>
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{result.studentName}</div>
-                        <div className="text-sm text-gray-500">{result.studentEmail}</div>
+                        <div className="text-sm font-medium text-gray-900">{result.student_name}</div>
+                        <div className="text-sm text-gray-500">{result.student_email}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {result.quizTitle}
+                    {result.quiz_title}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${getScoreBgColor(result.score)} ${getScoreColor(result.score)}`}>
-                      {result.score}%
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${getScoreBgColor(result.percentage)} ${getScoreColor(result.percentage)}`}>
+                      {result.percentage}%
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {result.correctAnswers}/{result.totalQuestions}
+                    {result.total_score}/{result.total_questions}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {result.timeSpent}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(result.completedAt).toLocaleDateString()}
+                    {new Date(result.completed_at).toLocaleDateString()}
                   </td>
                 </tr>
               ))}

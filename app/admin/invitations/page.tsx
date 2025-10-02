@@ -36,16 +36,18 @@ export default function InvitationsPage() {
   const fetchInvitations = async () => {
     try {
       setLoading(true)
+      console.log('🔍 Fetching invitations...')
       const response = await fetch('/api/admin/invitations')
       if (response.ok) {
         const data = await response.json()
+        console.log(`✅ Retrieved ${data.length} invitations`)
         setInvitations(data)
       } else {
-        console.error('Failed to fetch invitations')
+        console.error('❌ Failed to fetch invitations:', response.status, response.statusText)
         setInvitations([])
       }
     } catch (error) {
-      console.error('Error fetching invitations:', error)
+      console.error('❌ Error fetching invitations:', error)
       setInvitations([])
     } finally {
       setLoading(false)
@@ -65,6 +67,64 @@ export default function InvitationsPage() {
 
   const uniqueQuizzes = [...new Set(invitations.map(i => i.quiz_title))]
 
+  const sendNewInvitations = async () => {
+    try {
+      // For now, we'll show an alert. In a real implementation, 
+      // you'd want to show a modal to select which quiz to send invitations for
+      const quizId = prompt('Enter Quiz ID to send invitations for:')
+      if (!quizId) return
+      
+      console.log(`📧 Sending invitations for quiz ${quizId}...`)
+      const response = await fetch('/api/admin/invitations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ quiz_id: quizId }),
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        console.log('✅ Invitations sent successfully:', result)
+        alert(`Successfully sent ${result.invitations_sent || 0} invitations!`)
+        // Refresh the invitations list
+        fetchInvitations()
+      } else {
+        console.error('❌ Failed to send invitations:', response.status, response.statusText)
+        alert('Failed to send invitations. Please try again.')
+      }
+    } catch (error) {
+      console.error('❌ Error sending invitations:', error)
+      alert('Error sending invitations. Please try again.')
+    }
+  }
+
+  const resendInvitation = async (invitationId: string) => {
+    try {
+      console.log(`📧 Resending invitation ${invitationId}...`)
+      const response = await fetch(`/api/admin/invitations/${invitationId}/resend`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        console.log('✅ Invitation resent successfully:', result)
+        alert('Invitation resent successfully!')
+        // Refresh the invitations list
+        fetchInvitations()
+      } else {
+        console.error('❌ Failed to resend invitation:', response.status, response.statusText)
+        alert('Failed to resend invitation. Please try again.')
+      }
+    } catch (error) {
+      console.error('❌ Error resending invitation:', error)
+      alert('Error resending invitation. Please try again.')
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -81,7 +141,10 @@ export default function InvitationsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Quiz Invitations</h1>
           <p className="text-gray-600">Manage and track quiz invitations sent to students</p>
         </div>
-        <button className="btn-primary flex items-center">
+        <button 
+          onClick={sendNewInvitations}
+          className="btn-primary flex items-center"
+        >
           <EnvelopeIcon className="h-5 w-5 mr-2" />
           Send New Invitations
         </button>
@@ -239,7 +302,11 @@ export default function InvitationsPage() {
                       >
                         <AcademicCapIcon className="h-4 w-4" />
                       </a>
-                      <button className="text-gray-600 hover:text-gray-900">
+                      <button 
+                        onClick={() => resendInvitation(invitation.id)}
+                        className="text-gray-600 hover:text-gray-900"
+                        title="Resend invitation"
+                      >
                         <EnvelopeIcon className="h-4 w-4" />
                       </button>
                     </div>

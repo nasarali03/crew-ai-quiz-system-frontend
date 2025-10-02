@@ -11,6 +11,7 @@ import {
   ArrowLeftIcon
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
+import { quizAPI } from '@/lib/api'
 
 interface Quiz {
   id: string
@@ -59,27 +60,38 @@ export default function QuizPage() {
 
   const fetchQuizData = async () => {
     try {
-      // Fetch quiz details
-      const quizResponse = await fetch(`/api/quiz/${token}`)
-      if (!quizResponse.ok) {
-        throw new Error('Quiz not found')
-      }
-      const quizData = await quizResponse.json()
+      console.log(`🔍 Fetching quiz data for token: ${token}`)
+      
+      // Fetch quiz details using the proper API client
+      const quizResponse = await quizAPI.getQuiz(token)
+      const quizData = quizResponse.data
       setQuiz(quizData)
+      console.log(`✅ Quiz loaded: ${quizData.title}`)
 
-      // Fetch questions
-      const questionsResponse = await fetch(`/api/quiz/${token}/questions`)
-      if (!questionsResponse.ok) {
-        throw new Error('Questions not found')
-      }
-      const questionsData = await questionsResponse.json()
+      // Fetch questions using the proper API client
+      const questionsResponse = await quizAPI.getQuestions(token)
+      const questionsData = questionsResponse.data
       setQuestions(questionsData)
       setTimeLeft(questionsData[0]?.time_limit || 60)
+      console.log(`✅ Loaded ${questionsData.length} questions`)
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching quiz:', error)
-      toast.error('Quiz not found or expired')
-      router.push('/')
+      
+      let errorMessage = 'Quiz not found or expired'
+      if (error.response?.status === 404) {
+        errorMessage = 'Quiz invitation not found or has expired'
+      } else if (error.response?.status === 403) {
+        errorMessage = 'This quiz invitation has already been used'
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      toast.error(errorMessage)
+      setQuiz(null)
+      setQuestions([])
     } finally {
       setLoading(false)
     }
@@ -129,29 +141,29 @@ export default function QuizPage() {
   const submitQuiz = async () => {
     setSubmitting(true)
     try {
-      const response = await fetch(`/api/quiz/${token}/submit`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          answers: answers
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to submit quiz')
-      }
-
-      const result = await response.json()
+      console.log(`📝 Submitting quiz with ${answers.length} answers...`)
+      
+      // Submit using the proper API client
+      const response = await quizAPI.submitAnswers(token, answers)
+      const result = response.data
+      
+      console.log('✅ Quiz submitted successfully:', result)
       toast.success('Quiz submitted successfully!')
       
       // Redirect to results page
       router.push(`/quiz/${token}/results`)
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting quiz:', error)
-      toast.error('Failed to submit quiz')
+      
+      let errorMessage = 'Failed to submit quiz'
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      toast.error(errorMessage)
     } finally {
       setSubmitting(false)
     }

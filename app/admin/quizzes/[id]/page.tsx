@@ -139,9 +139,47 @@ export default function QuizDetailPage() {
     }
   }
 
-  const handleSendInvitations = () => {
-    // Navigate to invitations page or open modal
-    router.push(`/admin/invitations?quizId=${quizId}`)
+  const handleSendInvitations = async () => {
+    if (!quiz) return
+    
+    const confirmed = window.confirm(
+      `Send quiz invitations to all students for "${quiz.title}"?\n\nThis will send personalized email invitations with unique quiz links.`
+    )
+    
+    if (!confirmed) return
+    
+    try {
+      console.log(`📧 Sending invitations for quiz ${quizId}...`)
+      
+      const response = await fetch('/api/admin/invitations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ quiz_id: quizId }),
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        console.log('✅ Invitations sent successfully:', result)
+        
+        const message = `Successfully sent ${result.invitations_sent || 0} invitations!`
+        if (result.failed_invitations && result.failed_invitations.length > 0) {
+          alert(`${message}\n\nFailed to send ${result.failed_invitations.length} invitations.`)
+        } else {
+          alert(message)
+        }
+        
+        // Navigate to invitations page to see results
+        router.push('/admin/invitations')
+      } else {
+        console.error('❌ Failed to send invitations:', response.status, response.statusText)
+        alert('Failed to send invitations. Please try again.')
+      }
+    } catch (error) {
+      console.error('❌ Error sending invitations:', error)
+      alert('Error sending invitations. Please try again.')
+    }
   }
 
   const handleExportResults = () => {
