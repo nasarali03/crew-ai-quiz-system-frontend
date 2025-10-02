@@ -1,246 +1,229 @@
-# CrewAI Quiz System - Frontend
+# CrewAI Quiz System Frontend
 
-Next.js frontend for the CrewAI-powered quiz system with modern UI and seamless user experience.
+Modern Next.js frontend for the CrewAI Quiz System with admin dashboard and student quiz interfaces.
 
-## Features
+## 🚀 Quick Start
 
-- **Modern UI** with Tailwind CSS and Headless UI
-- **Responsive Design** for all device sizes
-- **Admin Dashboard** with comprehensive management tools
-- **Student Quiz Interface** with real-time timer
-- **Video Submission** with YouTube integration
-- **Real-time Updates** with React state management
-- **TypeScript** for type safety
+```bash
+# Install dependencies
+npm install
 
-## Quick Start
+# Configure environment
+# Create .env.local with NEXT_PUBLIC_API_URL
 
-1. **Install Dependencies**:
+# Start development
+npm run dev
+```
 
-   ```bash
-   npm install
-   ```
+## 📋 Features
 
-2. **Setup Environment**:
+- **Admin Dashboard** - Complete quiz and student management
+- **Student Management** - Excel import/export with template
+- **Quiz Creation** - Interactive quiz builder with AI generation
+- **Real-time Results** - Live analytics and performance tracking
+- **Token-based Quiz Access** - Secure, unique quiz links
+- **Responsive Design** - Works on all devices
+- **Type Safety** - Full TypeScript implementation
 
-   ```bash
-   cp env.example .env.local
-   # Edit .env.local with your configuration
-   ```
+## 🏗️ Tech Stack
 
-3. **Run Development Server**:
+- **Next.js 14** - React framework with App Router
+- **TypeScript** - Type-safe JavaScript
+- **Tailwind CSS** - Utility-first CSS framework
+- **Axios** - HTTP client for API communication
+- **React Hot Toast** - Beautiful notifications
 
-   ```bash
-   npm run dev
-   ```
-
-4. **Open in Browser**:
-   ```
-   http://localhost:3000
-   ```
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 frontend/
-├── app/                    # Next.js App Router
-│   ├── admin/             # Admin dashboard pages
-│   │   ├── layout.tsx     # Admin layout with sidebar
-│   │   ├── page.tsx       # Admin dashboard
-│   │   ├── login/         # Admin login
-│   │   ├── upload/        # Student upload
-│   │   └── create-quiz/   # Quiz creation
-│   ├── quiz/              # Student quiz pages
-│   │   └── [token]/       # Dynamic quiz pages
-│   ├── video-submit/      # Video submission
-│   ├── globals.css        # Global styles
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Home page
-├── lib/                   # Utilities and API
-│   └── api.ts            # API client configuration
-├── components/            # Reusable components
-├── styles/               # Additional styles
-└── public/               # Static assets
+├── app/
+│   ├── admin/              # Admin dashboard
+│   │   ├── create-quiz/    # Quiz creation
+│   │   ├── login/          # Authentication
+│   │   ├── quizzes/        # Quiz management
+│   │   ├── results/        # Analytics
+│   │   └── students/       # Student management
+│   ├── quiz/[token]/       # Student quiz interface
+│   └── api/               # API routes
+├── components/ui/          # Reusable components
+├── lib/
+│   ├── api.ts             # API client
+│   └── utils.ts           # Utilities
+└── public/                # Static assets
 ```
 
-## Pages Overview
-
-### Admin Pages
-
-- **Dashboard** (`/admin`) - Overview with stats and quick actions
-- **Login** (`/admin/login`) - Admin authentication
-- **Upload Students** (`/admin/upload`) - Excel file upload with preview
-- **Create Quiz** (`/admin/create-quiz`) - Quiz configuration and AI generation
-- **Students** (`/admin/students`) - Student management
-- **Quizzes** (`/admin/quizzes`) - Quiz management
-- **Results** (`/admin/results`) - Analytics and rankings
-
-### Student Pages
-
-- **Home** (`/`) - Portal selection (Admin/Student)
-- **Quiz** (`/quiz/[token]`) - Timed quiz interface
-- **Video Submit** (`/video-submit`) - Video submission form
-
-## Key Features
-
-### Admin Dashboard
-
-- **Real-time Statistics** - Student count, quiz progress, video submissions
-- **Quick Actions** - Upload students, create quizzes, send invitations
-- **Recent Activity** - Timeline of system events
-- **Responsive Grid** - Adaptive layout for all screen sizes
-
-### Student Quiz Interface
-
-- **Token-based Access** - Secure quiz links
-- **Real-time Timer** - Countdown per question
-- **Progress Tracking** - Visual progress bar
-- **Auto-submit** - Automatic submission on time up
-- **Navigation** - Previous/Next question controls
-
-### Video Submission
-
-- **YouTube Integration** - Direct URL submission
-- **URL Validation** - Real-time YouTube URL checking
-- **Guidelines Display** - Clear submission requirements
-- **Preview Interface** - Video preview before submission
-
-## API Integration
-
-### Authentication
-
-```typescript
-import { authAPI } from "@/lib/api";
-
-// Login
-const response = await authAPI.login(email, password);
-localStorage.setItem("admin_token", response.data.access_token);
-
-// Get current user
-const user = await authAPI.getMe();
-```
-
-### Admin Operations
-
-```typescript
-import { adminAPI } from "@/lib/api";
-
-// Upload students
-const formData = new FormData();
-formData.append("file", excelFile);
-await adminAPI.uploadStudents(excelFile);
-
-// Create quiz
-await adminAPI.createQuiz(quizData);
-
-// Generate questions
-await adminAPI.generateQuestions(quizId);
-```
-
-### Student Quiz
-
-```typescript
-import { quizAPI } from "@/lib/api";
-
-// Get quiz
-const quiz = await quizAPI.getQuiz(token);
-
-// Submit answers
-await quizAPI.submitAnswers(token, answers);
-```
-
-## Styling
-
-### Tailwind CSS Classes
-
-- **Custom Components** - Pre-defined component classes
-- **Color System** - Primary and secondary color palettes
-- **Responsive Design** - Mobile-first approach
-- **Dark Mode Ready** - CSS variables for theming
-
-### Custom Components
-
-```css
-.btn-primary     /* Primary button style */
-/* Primary button style */
-.btn-secondary   /* Secondary button style */
-.input-field     /* Form input style */
-.card           /* Card container */
-.card-header    /* Card header */
-.card-body; /* Card content */
-```
-
-## State Management
-
-### React Hooks
-
-- **useState** - Local component state
-- **useEffect** - Side effects and API calls
-- **useForm** - Form handling with react-hook-form
-- **Custom Hooks** - Reusable state logic
-
-### API State
-
-- **Loading States** - Loading indicators for async operations
-- **Error Handling** - Toast notifications for errors
-- **Success Feedback** - Confirmation messages
-
-## Development
-
-### Scripts
-
-```bash
-npm run dev      # Development server
-npm run build    # Production build
-npm run start    # Production server
-npm run lint     # ESLint checking
-```
+## 🔧 Configuration
 
 ### Environment Variables
 
 ```env
+# .env.local
 NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_APP_NAME=CrewAI Quiz System
-NEXT_PUBLIC_ENABLE_DEBUG=true
+
+# For production
+# NEXT_PUBLIC_API_URL=https://your-backend.vercel.app
 ```
 
-## Deployment
+## 🚀 Deployment
 
 ### Vercel (Recommended)
 
 1. Connect GitHub repository
-2. Set environment variables
-3. Deploy automatically
+2. Set root directory to `frontend/`
+3. Add environment variable: `NEXT_PUBLIC_API_URL`
+4. Deploy automatically on push
 
-### Docker
+### Manual Production
 
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-EXPOSE 3000
-CMD ["npm", "start"]
+```bash
+npm run build
+npm start
 ```
 
-## Browser Support
+## 📱 Key Pages
 
-- **Chrome** 90+
-- **Firefox** 88+
-- **Safari** 14+
-- **Edge** 90+
+### Admin Dashboard (`/admin`)
 
-## Performance
+- **Login/Register** - Admin authentication
+- **Students** - Upload and manage students via Excel
+- **Create Quiz** - AI-powered quiz generation
+- **Quizzes** - Manage all quizzes and send invitations
+- **Results** - Comprehensive analytics and exports
 
-- **Next.js Optimization** - Automatic code splitting
-- **Image Optimization** - Next.js Image component
-- **Bundle Analysis** - Webpack bundle analyzer
-- **Lighthouse Score** - 90+ performance rating
+### Student Interface (`/quiz/[token]`)
 
-## Security
+- **Secure Access** - Token-based quiz access
+- **Timed Questions** - Interactive quiz experience
+- **Progress Tracking** - Visual progress indicators
+- **Immediate Results** - Instant feedback and scores
 
-- **JWT Authentication** - Secure token-based auth
-- **CSRF Protection** - Built-in Next.js protection
-- **XSS Prevention** - React's built-in XSS protection
-- **HTTPS Only** - Secure communication in production
+## 🔄 Student Workflow
+
+1. **Receive Email** - Personalized invitation with unique link
+2. **Access Quiz** - One-time use token for security
+3. **Take Quiz** - Timed questions with navigation
+4. **View Results** - Immediate feedback and performance
+
+## 🧪 Testing
+
+```bash
+# Development testing
+npm run dev
+
+# Test admin flow:
+# 1. Register at /admin/register
+# 2. Upload students at /admin/upload
+# 3. Create quiz at /admin/create-quiz
+# 4. Send invitations and test student flow
+```
+
+## 🛠️ Development
+
+### API Integration
+
+```typescript
+import { adminAPI, quizAPI } from "@/lib/api";
+
+// Admin operations
+const quizzes = await adminAPI.getQuizzes();
+const students = await adminAPI.getStudents();
+
+// Student operations
+const quiz = await quizAPI.getQuiz(token);
+const result = await quizAPI.submitAnswers(token, answers);
+```
+
+### Adding Components
+
+```typescript
+// components/ui/Button.tsx
+interface ButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  variant?: "primary" | "secondary";
+}
+
+export function Button({
+  children,
+  onClick,
+  variant = "primary",
+}: ButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`btn ${
+        variant === "primary" ? "btn-primary" : "btn-secondary"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+```
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+1. **API Connection Error**
+
+   - Check `NEXT_PUBLIC_API_URL` in `.env.local`
+   - Ensure backend is running on correct port
+   - Verify network connectivity
+
+2. **Authentication Issues**
+
+   - Clear browser localStorage
+   - Check token expiration
+   - Verify admin credentials
+
+3. **Build Errors**
+   - Run `npm install` to update dependencies
+   - Clear `.next` cache: `rm -rf .next`
+   - Check TypeScript errors
+
+## 📖 Key Features Detail
+
+### Admin Dashboard
+
+- **Student Upload**: Excel template with validation
+- **Quiz Builder**: AI-generated questions with preview
+- **Invitation System**: Bulk sending with rate limiting
+- **Analytics**: Real-time results and performance metrics
+
+### Student Experience
+
+- **Secure Access**: Unique tokens prevent unauthorized access
+- **Version Control**: Quiz snapshots ensure consistency
+- **Responsive Design**: Works on mobile, tablet, desktop
+- **Progress Tracking**: Clear indicators and navigation
+
+### API Client
+
+- **Automatic Auth**: JWT tokens handled automatically
+- **Error Handling**: Graceful error messages
+- **Request Interceptors**: Consistent headers and formatting
+- **Response Processing**: Standardized data handling
+
+## 🎯 Production Checklist
+
+- [ ] Set production `NEXT_PUBLIC_API_URL`
+- [ ] Test all admin workflows
+- [ ] Verify student quiz experience
+- [ ] Check responsive design on all devices
+- [ ] Test error handling scenarios
+- [ ] Validate Excel upload/download
+- [ ] Confirm email integration works
+
+## 📄 License
+
+MIT License - see LICENSE file for details.
+
+## 🆘 Support
+
+1. Check browser console for errors
+2. Verify environment variables
+3. Test backend API connectivity
+4. Review network requests in DevTools
+5. Contact development team
