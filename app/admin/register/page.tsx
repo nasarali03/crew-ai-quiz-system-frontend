@@ -11,6 +11,7 @@ import {
   ArrowRightIcon
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
+import { authAPI } from '@/lib/api'
 
 interface RegisterForm {
   name: string
@@ -37,17 +38,30 @@ export default function AdminRegisterPage() {
   const onSubmit = async (data: RegisterForm) => {
     setLoading(true)
     try {
-      // Mock registration - replace with actual API call
-      console.log('Registering admin:', data)
+      console.log('📝 Registering admin:', data.email)
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const response = await authAPI.register({
+        name: data.name,
+        email: data.email,
+        password: data.password
+      })
       
+      console.log('✅ Registration successful')
       toast.success('Registration successful! Please login.')
       router.push('/admin/login')
-    } catch (error) {
-      console.error('Registration error:', error)
-      toast.error('Registration failed')
+    } catch (error: any) {
+      console.error('❌ Registration error:', error)
+      
+      let errorMessage = 'Registration failed'
+      if (error.response?.status === 400) {
+        errorMessage = 'Email already exists or invalid data'
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }

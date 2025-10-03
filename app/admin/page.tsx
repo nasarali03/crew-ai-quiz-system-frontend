@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { adminAPI } from '@/lib/api'
 
 interface DashboardStats {
   totalStudents: number
@@ -21,6 +22,7 @@ interface RecentActivity {
 }
 
 export default function AdminDashboard() {
+  const [admin, setAdmin] = useState<any>({ name: 'Admin' })
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,
     totalQuizzes: 0,
@@ -42,12 +44,12 @@ export default function AdminDashboard() {
       setLoading(true)
       
       // Fetch students data
-      const studentsResponse = await fetch('/api/admin/students')
-      const students = studentsResponse.ok ? await studentsResponse.json() : []
+      const studentsResponse = await adminAPI.getStudents()
+      const students = studentsResponse.data || []
       
       // Fetch quizzes data
-      const quizzesResponse = await fetch('/api/admin/quizzes')
-      const quizzes = quizzesResponse.ok ? await quizzesResponse.json() : []
+      const quizzesResponse = await adminAPI.getQuizzes()
+      const quizzes = quizzesResponse.data || []
       
       // Fetch video submissions
       const videosResponse = await fetch('/api/video/submissions')
@@ -124,7 +126,9 @@ export default function AdminDashboard() {
     <div className="space-y-8 animate-fadeInUp">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-gradient mb-4">Dashboard</h1>
+        <h1 className="text-4xl font-bold text-gradient mb-4">
+          Welcome back, {admin?.name || 'Admin'}!
+        </h1>
         <p className="text-xl text-gray-600">Overview of your quiz system and student activity</p>
       </div>
 

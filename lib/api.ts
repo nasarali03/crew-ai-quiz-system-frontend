@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000, // Increased timeout to 30 seconds
 })
 
 // Request interceptor to add auth token
@@ -54,6 +54,9 @@ export const authAPI = {
     api.post('/api/auth/register', data),
 
   getMe: () => api.get('/api/auth/me'),
+
+  googleLogin: (googleToken: string) => 
+    api.post('/api/auth/google', { google_token: googleToken }),
 }
 
 // Admin API

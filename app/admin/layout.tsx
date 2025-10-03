@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function AdminLayout({
   children,
@@ -9,6 +10,27 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [admin, setAdmin] = useState<any>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    // Check authentication on client side
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('admin_token')
+      if (!token) {
+        router.push('/admin/login')
+        return
+      }
+      
+      // Set a default admin object for now
+      setAdmin({ name: 'Admin', email: 'admin@example.com' })
+    }
+  }, [router])
+
+  const logout = () => {
+    localStorage.removeItem('admin_token')
+    router.push('/admin/login')
+  }
 
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: '🏠' },
@@ -100,9 +122,23 @@ export default function AdminLayout({
               <div className="flex items-center gap-x-4 lg:gap-x-6">
                 <div className="flex items-center space-x-3">
                   <div className="h-8 w-8 gradient-primary rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">A</span>
+                    <span className="text-white font-bold text-sm">
+                      {admin?.name?.charAt(0).toUpperCase() || 'A'}
+                    </span>
                   </div>
-                  <span className="text-sm font-semibold text-gray-700">Admin User</span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-gray-700">
+                      {admin?.name || 'Admin User'}
+                    </span>
+                    <span className="text-xs text-gray-500">{admin?.email}</span>
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="ml-2 text-sm text-gray-500 hover:text-red-600 transition-colors"
+                    title="Logout"
+                  >
+                    🚪
+                  </button>
                 </div>
               </div>
             </div>
