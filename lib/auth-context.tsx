@@ -23,7 +23,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [admin, setAdmin] = useState<Admin | null>(null)
-  const [loading, setLoading] = useState(false) // Start with false to prevent loading loop
+  const [loading, setLoading] = useState(true) // Start with true to show loading initially
   const router = useRouter()
 
   useEffect(() => {
